@@ -9,13 +9,17 @@ public class Position : MonoBehaviour
 
     private float InitialPosition_x;
     private float InitialPosition_y;
-    private float InitialPosition_z;
+    private Vector3 velocity = Vector3.zero;
 
+    private int flag = 0;
+
+    private Vector3 InitialPosition;
+    private Vector3 NextPosition;
     void Awake()
     {
-        InitialPosition_x = gameObject.transform.position.x;
-        InitialPosition_y = gameObject.transform.position.y;
-        InitialPosition_z = gameObject.transform.position.z;
+        InitialPosition.x = gameObject.transform.position.x;
+        InitialPosition.y = gameObject.transform.position.y;
+        InitialPosition.z = gameObject.transform.position.z;
     }
 
     void Start()
@@ -29,9 +33,19 @@ public class Position : MonoBehaviour
         
     }
 
+    private void FixedUpdate()
+    {
+        if (flag == 1)
+        {
+            gameObject.transform.position = Vector3.Lerp(InitialPosition, NextPosition, 1);
+            InitialPosition = NextPosition;
+            flag = 0;
+        }
+    }
+
     public IEnumerator ObjectPositionUpdate()
     {
-        using (UnityWebRequest client = UnityWebRequest.Get("http://192.168.0.104:3000/"))
+        using (UnityWebRequest client = UnityWebRequest.Get("http://192.168.0.104:3000/position"))
         {
 
             yield return client.SendWebRequest();
@@ -51,7 +65,7 @@ public class Position : MonoBehaviour
     {
         while (true)
         {
-            yield return new WaitForSeconds(0.5F);
+            yield return new WaitForSeconds(0.1F);
             yield return StartCoroutine(ObjectPositionUpdate());
         }
     }
@@ -59,9 +73,10 @@ public class Position : MonoBehaviour
 
     private void UpdatePositionObjects(GenericPosition UpdatePostion)
     {
-        gameObject.transform.position = new Vector3(
-            InitialPosition_x + UpdatePostion.position_x,
-            InitialPosition_y,
-            InitialPosition_z + UpdatePostion.position_y);
+        if(UpdatePostion.state == 1)
+        {
+            NextPosition = new Vector3(UpdatePostion.position_x, InitialPosition.y, UpdatePostion.position_y);
+            flag = 1;
+        }
     }
 }

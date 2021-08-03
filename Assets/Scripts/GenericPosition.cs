@@ -8,4 +8,5 @@ public class GenericPosition
 {
     public float position_x;
     public float position_y;
+    public int state;
 }
